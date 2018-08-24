@@ -1,7 +1,11 @@
 ﻿import serial
 import sys
+from datetime import datetime
+
+com_port ='COM3'
+bin_folder='C:/IRIDIUM/'
 #устанавливаем com порт
-ser = serial.Serial(port = 'COM2', baudrate = 19200, timeout = 30)
+ser = serial.Serial(port = 'COM3', baudrate = 19200, timeout = 30)
 print(ser.name)
 
 #буффер где аккумулируются считываемые данные из ком порта
@@ -12,16 +16,24 @@ buff_size = 0
 CSQ_C = 1
 SBDWB_C = 2
 ATE0_C = 3
-AT_C=4
-SBDD2_C=5
-SBDD0_C=6
-SBDIX_C=7
+AT_C = 4
+SBDD2_C = 5
+SBDD0_C = 6
+SBDIX_C = 7
+SBDSX_C = 8
+
 def checksum(bf):
 	sum_size = 2
-	data = bf[0:len(bf)-1-sum_size]
+	data = bf[0:len(bf)-sum_size]
 	cs_byte=bf[-2:]
 	calc_cs = sum(data)
+	#print(len(buff))
+	#print(data)
+	#print(len(data))
+	#print("CALC_CS %s" % hex(calc_cs))
 	cs_int = int(cs_byte[0]) * 256 + int( cs_byte[1] )
+	#print(hex(calc_cs))
+	#print(hex(cs_int))
 	if calc_cs == cs_int:
 		return True
 	else:
@@ -37,6 +49,7 @@ def cmd_type():
 	SBDD2 = buff.find(b'SBDD2')
 	SBDD0 = buff.find(b'SBDD0')
 	SBDIX = buff.find(b'SBDIX')
+	SBDSX = buff.find(b'SBDSX')
 	if CSQ != -1:
 		return CSQ_C
 	if SBDWB != -1:
@@ -49,6 +62,8 @@ def cmd_type():
 		return SBDD0_C
 	if SBDIX != -1:
 		return SBDIX_C
+	if SBDSX != -1:
+		return SBDSX_C
 	if AT != -1:
 		return AT_C
 while True:
@@ -79,6 +94,9 @@ while True:
 		if cmd == SBDIX_C:
 			print("--> +SBDIX: 0, 495, 0, 0, 0, 0 OK")
 			ser.write(b'+SBDIX: 0, 495, 0, 0, 0, 0\rOK\r')
+		if cmd == SBDSX_C:
+			print("--> +SBDSX: 0, 495, 0, 0, 0, 0 OK")
+			ser.write(b'+SBDSX: 0, 495, 0, 0, 0, 0\rOK\r')
 		if cmd == SBDWB_C:
 			print(buff)
 			#выделяем символы между BDWB= и символом \r это размер данных
@@ -101,10 +119,18 @@ while True:
 				ser.write(b'READY\r')
 				#читаем сколько нужно байт и еще два для CRC
 				raw = ser.read( msg_len)
-				
-				print(raw)
+				print("length raw %s" % len(raw))
+				s=''
+				z=0
+				for b in raw:
+					s = s + str(z) + ':' + str(hex(b)) + ' '
+					z = z + 1 
+				print(s)
 				#сохраняем в файл
-				f = open('bytes.bin', 'wb')
+				ff=datetime.strftime(datetime.now() ,"%Y-%m-%d_%H-%M-%S")
+				filename = bin_folder+ff+'.bin';
+
+				f=open(filename, 'bw')
 				f.write( raw )
 				f.close();
 				if checksum(raw):
