@@ -1,7 +1,7 @@
 ﻿import serial
 import sys
 #устанавливаем com порт
-ser = serial.Serial(port = 'COM3', baudrate = 19200, timeout = 30)
+ser = serial.Serial(port = 'COM2', baudrate = 19200, timeout = 30)
 print(ser.name)
 
 #буффер где аккумулируются считываемые данные из ком порта
@@ -112,6 +112,6 @@ while True:
 					ser.write(b'0\rOK\r')
 				else:
 					print("CHECKSUM INCORRECT")
-					ser.write(b'1\rOK\r')
+					ser.write(b'2\rOK\r')
 		#обнуляем глобальную переменную буфер		
 		buff = b''               
