@@ -2,6 +2,7 @@
 import sys
 from datetime import datetime
 
+
 com_port ='COM3'
 bin_folder='C:/IRIDIUM/'
 #устанавливаем com порт
