@@ -1,10 +1,15 @@
 ﻿import serial
 import sys
+import configparser
 from datetime import datetime
 
+config = configparser.ConfigParser()
+config.read('iridium.ini')
+print (config.sections())
+print (config['AT']['ip'])
+com_port =parser['SERIAL']['com_port']
+bin_folder=parser['STORAGE']['bin_folder']
 
-com_port ='COM3'
-bin_folder='C:/IRIDIUM/'
 #устанавливаем com порт
 ser = serial.Serial(port = 'COM3', baudrate = 19200, timeout = 30)
 print(ser.name)
@@ -23,6 +28,9 @@ SBDD0_C = 6
 SBDIX_C = 7
 SBDSX_C = 8
 
+def log():
+	f = open('iridium.log', 'w>')
+	
 def checksum(bf):
 	sum_size = 2
 	data = bf[0:len(bf)-sum_size]
