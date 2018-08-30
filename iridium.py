@@ -1,17 +1,48 @@
 ﻿import serial
 import sys
 import configparser
+import os
 from datetime import datetime
 
+
+config_file='iridium.ini'
+if (os.path.isfile(config_file)!=True):
+	print("Config file %s not exists." % config_file)
+	sys.exit(1)
 config = configparser.ConfigParser()
 config.read('iridium.ini')
-print (config.sections())
-print (config['AT']['ip'])
-com_port =parser['SERIAL']['com_port']
-bin_folder=parser['STORAGE']['bin_folder']
+
+com_port = config['SERIAL']['com_port']
+bin_files = config['STORAGE']['bin_files']
+write_checksum = config['DATA']['write_checksum']
+
+if (write_checksum == 'ON'):
+	write_checksum=1
+else:
+	write_checksum=0
+
+
+id=config['AFTOGRAPH']['id']
+print("Listening %s port ...." % com_port )
+if (write_checksum):
+	print("Cheksum ON")
+else:
+	print("Checksum OFF")
+exit
+
+bin_files = os.path.join(os.getcwd(), bin_files)
+if (os.path.exists(bin_files)==False):
+	print("Binary file storage %s not exists " % bin_files)
+	try:
+		print("Binary file storage created %s " % bin_files)
+		os.mkdir(bin_files)
+	except:
+		print("Cant create binary storage %s" % bin_files)
+		sys.exit(1)
+print("Binary file storage %s " % bin_files)
 
 #устанавливаем com порт
-ser = serial.Serial(port = 'COM3', baudrate = 19200, timeout = 30)
+ser = serial.Serial(port = com_port, baudrate = 19200, timeout = 300)
 print(ser.name)
 
 #буффер где аккумулируются считываемые данные из ком порта
@@ -32,6 +63,7 @@ def log():
 	f = open('iridium.log', 'w>')
 	
 def checksum(bf):
+	return True
 	sum_size = 2
 	data = bf[0:len(bf)-sum_size]
 	cs_byte=bf[-2:]
@@ -42,12 +74,17 @@ def checksum(bf):
 	else:
 		return False  
 
-def buff_to_file(raw_buf):
+def buff_to_file(raw_buf, write_checksum, id):
 	#сохраняем в файл
-	ff=datetime.strftime(datetime.now() ,"%Y-%m-%d_%H-%M-%S")
-	filename = bin_folder+ff+'.bin';
+	dt=datetime.strftime(datetime.now(), "%y%m%d-%H%M%S")
+	#ff=datetime.strftime(datetime.now() ,"%Y%m%d-%H-%M-%S")
+	f = str(id)+'-'+dt+'.bin'
+	filename = os.path.join(bin_files,f) ;
 	f=open(filename, 'bw')
-	f.write( raw_buf )
+	if (write_checksum == 0):	
+		f.write( raw_buf[0:len(raw_buf)-2] )
+	else:
+		f.write(raw_buf)	
 	f.close();
 def write_ok():
 	ser.write(b'OK\r')
@@ -116,7 +153,7 @@ while True:
 			print("--> +SBDSX: 0, 495, 0, 0, 0, 0 OK")
 			ser.write(b'+SBDSX: 0, 495, 0, 0, 0, 0\rOK\r')
 		if cmd == SBDWB_C:
-			print(buff)
+			#print(buff)
 			#выделяем символы между BDWB= и символом \r это размер данных
 			
 			cmd_length = len('BDWB=')
@@ -132,8 +169,8 @@ while True:
 			ser.write(b'READY\r')
 			#читаем сколько нужно байт и еще два для CRC
 			raw = ser.read( msg_len)
-			print("length raw %s" % len(raw))
-			buff_to_file(raw)
+			#print("length raw %s" % len(raw))
+			buff_to_file(raw, 0, id)
 			show_buff(raw)
 			if checksum(raw):
 				print("CHECKSUM CORRECT")
