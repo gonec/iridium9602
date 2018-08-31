@@ -2,17 +2,34 @@
 import sys
 import configparser
 import os
+import getopt
+opts,args = getopt.getopt(sys.argv[1:], "f:",["config_file="])
+config_file='iridium.ini'
+for o, a in opts:
+	if o in ( "-f", "--config_file"):
+		print("Using users config file %s" % config_file)
+		config_file=a	
 from datetime import datetime
 
 
-config_file='iridium.ini'
-if (os.path.isfile(config_file)!=True):
+if ( os.path.isfile(config_file) != True):
 	print("Config file %s not exists." % config_file)
 	sys.exit(1)
+
+
 config = configparser.ConfigParser()
-config.read('iridium.ini')
+
+config.read(config_file)
 
 com_port = config['SERIAL']['com_port']
+com_baudrate = 19200
+com_timeout = 300
+if config.has_option('SERIAL', 'baudrate'):
+	com_baudrate = int(config['SERIAL']['baudrate'])
+
+if config.has_option('SERIAL', 'timeout'):
+	com_timeout  = int(config['SERIAL']['timeout'])
+
 bin_files = config['STORAGE']['bin_files']
 write_checksum = config['DATA']['write_checksum']
 
@@ -23,11 +40,13 @@ else:
 
 
 id=config['AFTOGRAPH']['id']
-print("Listening %s port ...." % com_port )
+print("Listening:\t%s port " % com_port )
+print("Com speed:\t%s baud " % com_baudrate )
+print("Com timeout:\t%s msec " % com_timeout )
 if (write_checksum):
-	print("Cheksum ON")
+	print("Cheksum:\tON")
 else:
-	print("Checksum OFF")
+	print("Checksum:\tOFF")
 exit
 
 bin_files = os.path.join(os.getcwd(), bin_files)
@@ -42,8 +61,7 @@ if (os.path.exists(bin_files)==False):
 print("Binary file storage %s " % bin_files)
 
 #устанавливаем com порт
-ser = serial.Serial(port = com_port, baudrate = 19200, timeout = 300)
-print(ser.name)
+ser = serial.Serial(port = com_port, baudrate = com_baudrate, timeout = com_timeout)
 
 #буффер где аккумулируются считываемые данные из ком порта
 buff = b''
