@@ -41,7 +41,8 @@ def loger(ln):
 def send_file( file_name ):
 	at=config['AT']['at']
 	to=config['AT']['to']
-	login=config['AT']['login']
+        channel=int(config['AT']['channel'])	
+        login=config['AT']['login']
 	password=config['AT']['password']
 	fullname = os.path.join(bin_files, file_name)
 	print('send_file> fullname %s' % fullname)	
@@ -52,7 +53,8 @@ def send_file( file_name ):
 		f.close()
 		msg = file_name.encode()
 		b_to = to.encode()
-		dt = b'&to='+b_to + b'&urgency=0&chSv=1&subj=file&kvs=000&msg=' + msg + b'\x00' + raw_data
+                b_ch= channel.encode()
+		dt = b'&to='+b_to + b'&urgency=0&chSv='+b_ch +'&subj=file&kvs=000&msg=' + msg + b'\x00' + raw_data
 		print(dt)
 			
 		try:	
