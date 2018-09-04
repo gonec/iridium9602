@@ -39,11 +39,11 @@ def loger(ln):
 	l.close()
 
 def send_file( file_name ):
-	at=config['AT']['at']
-	to=config['AT']['to']
-        channel=int(config['AT']['channel'])	
-        login=config['AT']['login']
-	password=config['AT']['password']
+	at = config['AT']['at']
+	to = config['AT']['to']
+	channel = config['AT']['channel']	
+	login = config['AT']['login']
+	password = config['AT']['password']
 	fullname = os.path.join(bin_files, file_name)
 	print('send_file> fullname %s' % fullname)	
 	try:	
@@ -53,10 +53,9 @@ def send_file( file_name ):
 		f.close()
 		msg = file_name.encode()
 		b_to = to.encode()
-                b_ch= channel.encode()
-		dt = b'&to='+b_to + b'&urgency=0&chSv='+b_ch +'&subj=file&kvs=000&msg=' + msg + b'\x00' + raw_data
+		b_ch= channel.encode()
+		dt = b'&to='+b_to + b'&urgency=0&chSv='+b_ch +b'&subj=file&kvs=000&msg=' + msg + b'\x00' + raw_data
 		print(dt)
-			
 		try:	
 			at=at+'sendmsg2.xip'
 			print('AT: %s' % at)
